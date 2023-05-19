@@ -1,0 +1,29 @@
+# Node Image for docker on which code will execute
+image: node:latest
+
+# This is the stages / task to perfom in jobs
+stages:
+  - build
+  - deploy
+    
+# This command is run before the execution of stages    
+before_script:
+  - npm install
+
+# Job One for making build
+build_prod: 
+  stage: build
+  script:
+    - npm run build
+  only: ['main']
+  artifacts:
+    paths:
+      - dist/
+
+# Job Two for deploy build to S3
+deploy_production: 
+  stage: deploy
+  script:
+    - apt-get update && apt-get install -y awscli
+    - aws s3 sync ./dist/fuse s3://${S3_BUCKET}/ --delete
+  only: ['main']
